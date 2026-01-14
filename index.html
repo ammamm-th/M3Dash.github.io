@@ -1,226 +1,224 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Tesla Model 3 Live Dashboard</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesla Drive Dashboard</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
-:root{
- --bg:#000;--card:#0b0b0b;--border:#1f1f1f;
- --text:#e5e7eb;--muted:#6b7280;
- --green:#22c55e;--yellow:#facc15;--orange:#fb923c;--red:#ef4444;
- --blue:#3b82f6;
-}
-
-body{
- background:var(--bg);
- color:var(--text);
- font-family:Inter,system-ui;
- height:100vh;
- overflow:hidden;
-}
-
-.card{
- background:var(--card);
- border:1px solid var(--border);
- border-radius:1rem;
-}
-
-::-webkit-scrollbar{display:none}
-iframe{border:0}
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    overflow: hidden;
+  }
+  iframe, img { border: 0 }
+  .card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 18px;
+  }
+  .dim { opacity: 0.6 }
 </style>
 </head>
 
-<body class="p-3 flex flex-col gap-3">
+<body class="p-4">
 
-<!-- ===== TOP STATUS BAR ===== -->
-<header class="h-16 flex justify-between items-center px-4 card">
-  <div class="flex items-baseline gap-4">
-    <div id="clock" class="text-5xl font-bold">00:00</div>
-    <div class="flex flex-col text-xs text-[color:var(--muted)]">
-      <span id="loc">GPS: --</span>
-      <span id="weather-line">🌦 --° | --</span>
+<!-- ===== HEADER STATUS BAR ===== -->
+<header class="flex justify-between items-center mb-4">
+  <div class="flex items-center gap-6">
+    <div class="text-6xl font-bold" id="tempNow">--°</div>
+
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-3xl" id="weatherNow">☀</span>
+        <span class="text-xl text-gray-400">→</span>
+        <span class="text-2xl" id="weather4h">🌧</span>
+        <span class="text-sm text-gray-500 ml-1">4h</span>
+      </div>
+      <div class="text-xs text-gray-500" id="weatherDesc">Loading...</div>
     </div>
   </div>
 
-  <div class="text-right">
-    <p class="text-[10px] uppercase tracking-widest text-[color:var(--muted)]">
-      PM2.5 AQI
-    </p>
-    <p id="pm25" class="text-2xl font-bold text-[color:var(--yellow)]">--</p>
+  <div class="flex items-center gap-8 text-right">
+    <div>
+      <div class="text-xs text-gray-500">PM2.5</div>
+      <div class="text-2xl font-bold text-yellow-400" id="aqiVal">--</div>
+    </div>
+
+    <div>
+      <div class="text-xs text-gray-500">TIME</div>
+      <div class="text-2xl font-bold" id="clock">--:--</div>
+    </div>
   </div>
 </header>
 
 <!-- ===== MAIN SPLIT LAYOUT ===== -->
-<main class="flex-1 grid grid-cols-10 gap-3 overflow-hidden">
+<main class="grid grid-cols-10 gap-4 h-[calc(100vh-120px)]">
 
-<!-- LEFT : RADAR -->
-<section class="col-span-6 card relative overflow-hidden">
-  <iframe id="radar"
-    loading="lazy"
-    width="100%" height="100%"
-    src="https://www.rainviewer.com/map.html?loc=13.75,100.52,9&oFa=0&oC=0&oU=0&oCS=1&oF=1&oAP=0&c=3&o=83">
-  </iframe>
-  <div class="absolute top-2 left-2 text-xs font-bold text-blue-400">
-    🌧 Rain Radar (Live GPS)
-  </div>
-</section>
+  <!-- LEFT : RADAR -->
+  <section class="col-span-3 card p-2 relative">
+    <img id="radarImg"
+      class="w-full h-full object-cover rounded-xl"
+      alt="Rain Radar"/>
+    <div class="absolute top-2 left-2 text-[10px] text-blue-400 bg-black/70 px-2 py-1 rounded">
+      RAIN RADAR
+    </div>
+    <div id="radarStatus"
+      class="absolute bottom-2 right-2 text-[10px] text-gray-400">
+    </div>
+  </section>
 
-<!-- RIGHT : TRAFFIC -->
-<section class="col-span-4 card flex flex-col overflow-hidden">
+  <!-- RIGHT : INFO STACK -->
+  <section class="col-span-7 grid grid-rows-3 gap-4">
 
-  <div class="p-3 border-b border-[color:var(--border)]">
-    <h2 class="text-sm font-bold tracking-widest uppercase text-blue-400">
-      🚨 Traffic Alerts
-    </h2>
-  </div>
+    <!-- SUPERCHARGER -->
+    <div class="card p-4">
+      <div class="text-xs text-gray-500 mb-1">⚡ Nearest Supercharger</div>
+      <div class="text-3xl font-bold text-green-400" id="scName">--</div>
+      <div class="text-sm text-gray-400" id="scMeta">--</div>
+    </div>
 
-  <div id="alert-box"
-       class="hidden p-3 bg-red-500/10 text-red-400 text-sm font-semibold">
-    🚨 อุบัติเหตุ / ปิดถนนข้างหน้า โปรดใช้ความระมัดระวัง
-  </div>
+    <!-- EMERGENCY -->
+    <div class="card p-3 flex items-center gap-3 text-sm justify-between">
+      <span>🚑 <a href="tel:1669">1669</a></span>
+      <span>🚓 <a href="tel:1193">1193</a></span>
+      <span>🚒 <a href="tel:199">199</a></span>
+      <span>⚡ <a href="tel:1800011199">Tesla</a></span>
+    </div>
 
-  <div id="traffic-feed"
-       class="flex-1 overflow-y-auto p-3 space-y-3 text-sm">
-    Loading traffic data…
-  </div>
+    <!-- SPEED CAMERA -->
+    <div class="card p-4">
+      <div class="text-xs text-gray-500 mb-1">📷 Speed Camera Zone</div>
+      <div class="text-2xl font-bold text-red-400" id="camInfo">
+        No camera nearby
+      </div>
+    </div>
 
-</section>
-
+  </section>
 </main>
 
-<footer class="h-5 px-4 text-[9px] uppercase tracking-widest text-[color:var(--muted)]">
-Realtime • GPS-linked • Tesla Model 3
+<!-- ===== FOOTER ===== -->
+<footer class="mt-3 text-[10px] text-gray-600 text-center">
+  Tesla Drive UI · Offline-safe · Bangkok fallback
 </footer>
 
 <script>
-/* ===== CLOCK ===== */
+/* ===============================
+   CONFIG
+================================ */
+const FALLBACK_LAT = 13.7563;
+const FALLBACK_LON = 100.5018;
+const OWM_KEY = "YOUR_OPENWEATHER_KEY";
+const WAQI_TOKEN = "YOUR_WAQI_TOKEN";
+
+/* ===============================
+   CLOCK
+================================ */
 function updateClock(){
- const d=new Date();
- clock.textContent=d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  const d = new Date();
+  document.getElementById("clock").textContent =
+    d.getHours().toString().padStart(2,'0') + ":" +
+    d.getMinutes().toString().padStart(2,'0');
 }
-setInterval(updateClock,1000); updateClock();
+setInterval(updateClock,1000);
+updateClock();
 
-/* ===== GPS ===== */
-let currentLat=13.7563, currentLon=100.5018;
-
-if(navigator.geolocation){
- navigator.geolocation.watchPosition(pos=>{
-   currentLat=pos.coords.latitude;
-   currentLon=pos.coords.longitude;
-
-   loc.textContent=`GPS: ${currentLat.toFixed(3)}, ${currentLon.toFixed(3)}`;
-
-   radar.src=
-    `https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},9&oFa=0&oC=0&oU=0&oCS=1&oF=1&oAP=0&c=3&o=83`;
-
-   updateWeatherAndAQI(currentLat,currentLon);
- });
-}
-
-/* ===== WEATHER + AQI ===== */
-const OWM_KEY="291abd3340d40fa520f4240eb08313da";
-const WAQI_TOKEN="58ffca1bf9a4b7549d05e194a3b8d93c5b558e62";
-
-async function updateWeatherAndAQI(lat,lon){
- try{
-   const w=await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=th&appid=${OWM_KEY}`
-   ).then(r=>r.json());
-
-   if(w.main){
-     document.getElementById('weather-line').textContent=
-      `🌦 ${Math.round(w.main.temp)}° | ${w.weather[0].description}`;
-   }
-
-   const a=await fetch(
-    `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`
-   ).then(r=>r.json());
-
-   if(a.status==="ok"){
-     const aqi=a.data.aqi;
-     const pm=document.getElementById('pm25');
-     pm.textContent=aqi;
-
-     pm.style.color =
-      aqi<=50 ? "var(--green)" :
-      aqi<=100 ? "var(--yellow)" :
-      aqi<=150 ? "var(--orange)" :
-      "var(--red)";
-   }
- }catch(e){
-   console.warn("Weather/AQI unavailable");
- }
-}
-setInterval(()=>updateWeatherAndAQI(currentLat,currentLon),600000);
-
-/* ===== TRAFFIC ===== */
-const dangerWords=['อุบัติเหตุ','ชน','คว่ำ','ปิดถนน','รถติด','น้ำท่วม','หลีกเลี่ยง','ทางเลี่ยง'];
-let lastAlert='';
-let audioUnlocked=false;
-
-document.body.addEventListener('click',()=>audioUnlocked=true,{once:true});
-
-function beep(){
- if(!audioUnlocked)return;
- const ctx=new AudioContext();
- const o=ctx.createOscillator();
- o.frequency.value=880;
- o.connect(ctx.destination);
- o.start();
- setTimeout(()=>o.stop(),150);
+/* ===============================
+   LOCATION (FAIL-SAFE)
+================================ */
+function getLocation(){
+  return new Promise(res=>{
+    if(!navigator.geolocation){
+      res({lat:FALLBACK_LAT,lon:FALLBACK_LON, approx:true});
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      p=>res({lat:p.coords.latitude, lon:p.coords.longitude}),
+      ()=>res({lat:FALLBACK_LAT,lon:FALLBACK_LON, approx:true}),
+      {timeout:5000}
+    );
+  });
 }
 
-async function loadTraffic(){
- const feed=document.getElementById('traffic-feed');
- const alertBox=document.getElementById('alert-box');
- feed.innerHTML='';
- let alertFound=false;
-
- try{
-   const r=await fetch(
-    'https://api.rss2json.com/v1/api.json?rss_url=https://www.js100.com/rss/news'
-   );
-   const d=await r.json();
-
-   d.items.slice(0,12).forEach(i=>{
-     const danger=dangerWords.some(w=>i.title.includes(w));
-     if(danger && i.title!==lastAlert){
-       alertFound=true;
-       lastAlert=i.title;
-     }
-     feed.innerHTML+=`
-      <div class="border-b border-[color:var(--border)] pb-2">
-        <p class="${danger?'text-red-400 font-semibold':''}">
-          ${danger?'🚨 ':''}${i.title}
-        </p>
-        <p class="text-[10px] text-[color:var(--muted)]">
-          ${new Date(i.pubDate).toLocaleTimeString('th-TH')}
-        </p>
-      </div>`;
-   });
-
-   if(alertFound){
-     alertBox.classList.remove('hidden');
-     beep();
-   }else{
-     alertBox.classList.add('hidden');
-   }
- }catch{
-   feed.innerHTML='<p class="text-red-400">Traffic feed unavailable</p>';
- }
+/* ===============================
+   WEATHER + AQI
+================================ */
+async function loadWeather(lat,lon){
+  try{
+    const r = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OWM_KEY}`
+    );
+    const d = await r.json();
+    localStorage.setItem("weather",JSON.stringify(d));
+    renderWeather(d);
+  }catch{
+    const cached = localStorage.getItem("weather");
+    if(cached) renderWeather(JSON.parse(cached));
+  }
 }
-loadTraffic();
-setInterval(loadTraffic,300000);
 
-/* ===== FULLSCREEN ===== */
-setTimeout(()=>{
- document.documentElement.requestFullscreen?.().catch(()=>{});
-},1000);
+function renderWeather(d){
+  document.getElementById("tempNow").textContent =
+    Math.round(d.main.temp)+"°";
+  document.getElementById("weatherDesc").textContent =
+    d.weather[0].description;
+}
+
+/* ===============================
+   AQI
+================================ */
+async function loadAQI(lat,lon){
+  try{
+    const r = await fetch(
+      `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`
+    );
+    const d = await r.json();
+    localStorage.setItem("aqi",JSON.stringify(d));
+    document.getElementById("aqiVal").textContent = d.data.aqi;
+  }catch{
+    const cached = localStorage.getItem("aqi");
+    if(cached){
+      document.getElementById("aqiVal").textContent =
+        JSON.parse(cached).data.aqi;
+    }
+  }
+}
+
+/* ===============================
+   RAIN RADAR (IMAGE SAFE)
+================================ */
+function loadRadar(lat,lon){
+  const ts = Math.floor(Date.now()/600000);
+  document.getElementById("radarImg").src =
+    `https://tilecache.rainviewer.com/v2/radar/${ts}/512/${8}/${Math.round(lon)}/${Math.round(lat)}/2/1_1.png`;
+  document.getElementById("radarStatus").textContent = "";
+}
+
+/* ===============================
+   MOCK DATA (SC + CAMERA)
+================================ */
+function loadStaticInfo(){
+  document.getElementById("scName").textContent = "Central Rama 9";
+  document.getElementById("scMeta").textContent = "2.4 km · 8 stalls";
+
+  document.getElementById("camInfo").textContent =
+    "Camera ahead in 1.2 km";
+}
+
+/* ===============================
+   INIT
+================================ */
+(async ()=>{
+  const loc = await getLocation();
+  loadWeather(loc.lat,loc.lon);
+  loadAQI(loc.lat,loc.lon);
+  loadRadar(loc.lat,loc.lon);
+  loadStaticInfo();
+})();
 </script>
-
 </body>
 </html>
