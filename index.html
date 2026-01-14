@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Tesla Dash v9 – Model 3 Live</title>
+<title>Tesla Model 3 Live Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -11,13 +11,24 @@
 :root{
  --bg:#000;--card:#0b0b0b;--border:#1f1f1f;
  --text:#e5e7eb;--muted:#6b7280;
- --danger:#ef4444;--accent:#3b82f6;
+ --green:#22c55e;--yellow:#facc15;--orange:#fb923c;--red:#ef4444;
+ --blue:#3b82f6;
 }
+
 body{
- background:var(--bg);color:var(--text);
- font-family:Inter,system-ui;height:100vh;overflow:hidden;
+ background:var(--bg);
+ color:var(--text);
+ font-family:Inter,system-ui;
+ height:100vh;
+ overflow:hidden;
 }
-.card{background:var(--card);border:1px solid var(--border);border-radius:1rem}
+
+.card{
+ background:var(--card);
+ border:1px solid var(--border);
+ border-radius:1rem;
+}
+
 ::-webkit-scrollbar{display:none}
 iframe{border:0}
 </style>
@@ -25,71 +36,134 @@ iframe{border:0}
 
 <body class="p-3 flex flex-col gap-3">
 
-<!-- STATUS BAR -->
-<header class="h-14 flex justify-between items-center px-4 card">
+<!-- ===== TOP STATUS BAR ===== -->
+<header class="h-16 flex justify-between items-center px-4 card">
   <div class="flex items-baseline gap-4">
     <div id="clock" class="text-5xl font-bold">00:00</div>
-    <div id="loc" class="text-xs text-[color:var(--muted)]">GPS: --</div>
+    <div class="flex flex-col text-xs text-[color:var(--muted)]">
+      <span id="loc">GPS: --</span>
+      <span id="weather-line">🌦 --° | --</span>
+    </div>
   </div>
-  <div class="text-right text-xs text-green-500 font-semibold">
-    Tesla Model 3 • LIVE
+
+  <div class="text-right">
+    <p class="text-[10px] uppercase tracking-widest text-[color:var(--muted)]">
+      PM2.5 AQI
+    </p>
+    <p id="pm25" class="text-2xl font-bold text-[color:var(--yellow)]">--</p>
   </div>
 </header>
 
-<!-- MAIN SPLIT -->
-<main class="flex-1 grid grid-cols-10 gap-3">
+<!-- ===== MAIN SPLIT LAYOUT ===== -->
+<main class="flex-1 grid grid-cols-10 gap-3 overflow-hidden">
 
 <!-- LEFT : RADAR -->
 <section class="col-span-6 card relative overflow-hidden">
   <iframe id="radar"
     loading="lazy"
     width="100%" height="100%"
-    src="https://www.rainviewer.com/map.html?loc=13.75,100.52,8&oFa=0&oC=0&oU=0&oCS=1&oF=1&oAP=0&c=3&o=83">
+    src="https://www.rainviewer.com/map.html?loc=13.75,100.52,9&oFa=0&oC=0&oU=0&oCS=1&oF=1&oAP=0&c=3&o=83">
   </iframe>
-  <div class="absolute top-2 left-2 text-xs text-blue-400 font-bold">
-    🌧 Rain Radar (GPS-linked)
+  <div class="absolute top-2 left-2 text-xs font-bold text-blue-400">
+    🌧 Rain Radar (Live GPS)
   </div>
 </section>
 
 <!-- RIGHT : TRAFFIC -->
-<section class="col-span-4 card flex flex-col">
+<section class="col-span-4 card flex flex-col overflow-hidden">
+
   <div class="p-3 border-b border-[color:var(--border)]">
     <h2 class="text-sm font-bold tracking-widest uppercase text-blue-400">
-      🚨 Traffic Ahead
+      🚨 Traffic Alerts
     </h2>
   </div>
 
-  <div id="alert-box" class="p-3 hidden bg-red-500/10 text-red-400 text-sm font-semibold">
-    🚨 อุบัติเหตุข้างหน้า โปรดใช้ความระมัดระวัง
+  <div id="alert-box"
+       class="hidden p-3 bg-red-500/10 text-red-400 text-sm font-semibold">
+    🚨 อุบัติเหตุ / ปิดถนนข้างหน้า โปรดใช้ความระมัดระวัง
   </div>
 
-  <div id="traffic-feed" class="flex-1 overflow-y-auto p-3 space-y-3 text-sm"></div>
+  <div id="traffic-feed"
+       class="flex-1 overflow-y-auto p-3 space-y-3 text-sm">
+    Loading traffic data…
+  </div>
+
 </section>
 
 </main>
 
+<footer class="h-5 px-4 text-[9px] uppercase tracking-widest text-[color:var(--muted)]">
+Realtime • GPS-linked • Tesla Model 3
+</footer>
+
 <script>
-/* ⏰ CLOCK */
-function tick(){
+/* ===== CLOCK ===== */
+function updateClock(){
  const d=new Date();
  clock.textContent=d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 }
-setInterval(tick,1000); tick();
+setInterval(updateClock,1000); updateClock();
 
-/* 📍 GPS */
-let currentLat=13.7563,currentLon=100.5018;
+/* ===== GPS ===== */
+let currentLat=13.7563, currentLon=100.5018;
+
 if(navigator.geolocation){
  navigator.geolocation.watchPosition(pos=>{
-  currentLat=pos.coords.latitude;
-  currentLon=pos.coords.longitude;
-  loc.textContent=`GPS: ${currentLat.toFixed(3)}, ${currentLon.toFixed(3)}`;
+   currentLat=pos.coords.latitude;
+   currentLon=pos.coords.longitude;
 
-  radar.src=`https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},9&oFa=0&oC=0&oU=0&oCS=1&oF=1&oAP=0&c=3&o=83`;
+   loc.textContent=`GPS: ${currentLat.toFixed(3)}, ${currentLon.toFixed(3)}`;
+
+   radar.src=
+    `https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},9&oFa=0&oC=0&oU=0&oCS=1&oF=1&oAP=0&c=3&o=83`;
+
+   updateWeatherAndAQI(currentLat,currentLon);
  });
 }
 
-/* 🔊 ALERT SOUND */
+/* ===== WEATHER + AQI ===== */
+const OWM_KEY="291abd3340d40fa520f4240eb08313da";
+const WAQI_TOKEN="58ffca1bf9a4b7549d05e194a3b8d93c5b558e62";
+
+async function updateWeatherAndAQI(lat,lon){
+ try{
+   const w=await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=th&appid=${OWM_KEY}`
+   ).then(r=>r.json());
+
+   if(w.main){
+     document.getElementById('weather-line').textContent=
+      `🌦 ${Math.round(w.main.temp)}° | ${w.weather[0].description}`;
+   }
+
+   const a=await fetch(
+    `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`
+   ).then(r=>r.json());
+
+   if(a.status==="ok"){
+     const aqi=a.data.aqi;
+     const pm=document.getElementById('pm25');
+     pm.textContent=aqi;
+
+     pm.style.color =
+      aqi<=50 ? "var(--green)" :
+      aqi<=100 ? "var(--yellow)" :
+      aqi<=150 ? "var(--orange)" :
+      "var(--red)";
+   }
+ }catch(e){
+   console.warn("Weather/AQI unavailable");
+ }
+}
+setInterval(()=>updateWeatherAndAQI(currentLat,currentLon),600000);
+
+/* ===== TRAFFIC ===== */
+const dangerWords=['อุบัติเหตุ','ชน','คว่ำ','ปิดถนน','รถติด','น้ำท่วม','หลีกเลี่ยง','ทางเลี่ยง'];
+let lastAlert='';
 let audioUnlocked=false;
+
+document.body.addEventListener('click',()=>audioUnlocked=true,{once:true});
+
 function beep(){
  if(!audioUnlocked)return;
  const ctx=new AudioContext();
@@ -99,49 +173,50 @@ function beep(){
  o.start();
  setTimeout(()=>o.stop(),150);
 }
-document.body.addEventListener('click',()=>audioUnlocked=true,{once:true});
-
-/* 🚨 TRAFFIC LOGIC */
-const dangerWords=['อุบัติเหตุ','ชน','คว่ำ','ปิดถนน','รถติด','น้ำท่วม','หลีกเลี่ยง'];
-let lastAlert='';
 
 async function loadTraffic(){
  const feed=document.getElementById('traffic-feed');
  const alertBox=document.getElementById('alert-box');
  feed.innerHTML='';
- const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.js100.com/rss/news');
- const d=await r.json();
-
  let alertFound=false;
 
- d.items.slice(0,12).forEach(i=>{
-  const danger=dangerWords.some(w=>i.title.includes(w));
-  if(danger && i.title!==lastAlert){
-    alertFound=true;
-    lastAlert=i.title;
-  }
-  feed.innerHTML+=`
-   <div class="border-b border-[color:var(--border)] pb-2">
-     <p class="${danger?'text-red-400 font-semibold':''}">
-       ${danger?'🚨 ':''}${i.title}
-     </p>
-     <p class="text-[10px] text-[color:var(--muted)]">
-       ${new Date(i.pubDate).toLocaleTimeString('th-TH')}
-     </p>
-   </div>`;
- });
+ try{
+   const r=await fetch(
+    'https://api.rss2json.com/v1/api.json?rss_url=https://www.js100.com/rss/news'
+   );
+   const d=await r.json();
 
- if(alertFound){
-   alertBox.classList.remove('hidden');
-   beep();
- } else {
-   alertBox.classList.add('hidden');
+   d.items.slice(0,12).forEach(i=>{
+     const danger=dangerWords.some(w=>i.title.includes(w));
+     if(danger && i.title!==lastAlert){
+       alertFound=true;
+       lastAlert=i.title;
+     }
+     feed.innerHTML+=`
+      <div class="border-b border-[color:var(--border)] pb-2">
+        <p class="${danger?'text-red-400 font-semibold':''}">
+          ${danger?'🚨 ':''}${i.title}
+        </p>
+        <p class="text-[10px] text-[color:var(--muted)]">
+          ${new Date(i.pubDate).toLocaleTimeString('th-TH')}
+        </p>
+      </div>`;
+   });
+
+   if(alertFound){
+     alertBox.classList.remove('hidden');
+     beep();
+   }else{
+     alertBox.classList.add('hidden');
+   }
+ }catch{
+   feed.innerHTML='<p class="text-red-400">Traffic feed unavailable</p>';
  }
 }
 loadTraffic();
 setInterval(loadTraffic,300000);
 
-/* 📺 FULLSCREEN */
+/* ===== FULLSCREEN ===== */
 setTimeout(()=>{
  document.documentElement.requestFullscreen?.().catch(()=>{});
 },1000);
