@@ -1,223 +1,214 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tesla Drive Dashboard</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-  body {
-    margin: 0;
-    background: #000;
-    color: #fff;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont;
-    overflow: hidden;
-  }
-  iframe, img { border: 0 }
-  .card {
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 18px;
-  }
-  .dim { opacity: 0.6 }
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  overflow: hidden;
+}
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 18px;
+}
+.small {
+  font-size: 11px;
+  color: #888;
+}
 </style>
 </head>
 
 <body class="p-4">
 
-<!-- ===== HEADER STATUS BAR ===== -->
+<!-- HEADER -->
 <header class="flex justify-between items-center mb-4">
   <div class="flex items-center gap-6">
-    <div class="text-6xl font-bold" id="tempNow">--°</div>
-
+    <div id="tempNow" class="text-6xl font-bold">--°</div>
     <div>
       <div class="flex items-center gap-2">
-        <span class="text-3xl" id="weatherNow">☀</span>
-        <span class="text-xl text-gray-400">→</span>
-        <span class="text-2xl" id="weather4h">🌧</span>
-        <span class="text-sm text-gray-500 ml-1">4h</span>
+        <span id="iconNow" class="text-4xl">☀</span>
+        <span class="text-gray-500">→</span>
+        <span id="icon4h" class="text-3xl">🌧</span>
+        <span class="small">4h</span>
       </div>
-      <div class="text-xs text-gray-500" id="weatherDesc">Loading...</div>
+      <div id="weatherDesc" class="small">Loading...</div>
     </div>
   </div>
 
-  <div class="flex items-center gap-8 text-right">
+  <div class="flex gap-8 text-right">
     <div>
-      <div class="text-xs text-gray-500">PM2.5</div>
-      <div class="text-2xl font-bold text-yellow-400" id="aqiVal">--</div>
+      <div class="small">PM2.5</div>
+      <div id="aqiVal" class="text-3xl font-bold text-yellow-400">--</div>
     </div>
-
     <div>
-      <div class="text-xs text-gray-500">TIME</div>
-      <div class="text-2xl font-bold" id="clock">--:--</div>
+      <div class="small">TIME</div>
+      <div id="clock" class="text-3xl font-bold">--:--</div>
     </div>
   </div>
 </header>
 
-<!-- ===== MAIN SPLIT LAYOUT ===== -->
+<!-- MAIN -->
 <main class="grid grid-cols-10 gap-4 h-[calc(100vh-120px)]">
 
-  <!-- LEFT : RADAR -->
-  <section class="col-span-3 card p-2 relative">
-    <img id="radarImg"
-      class="w-full h-full object-cover rounded-xl"
-      alt="Rain Radar"/>
-    <div class="absolute top-2 left-2 text-[10px] text-blue-400 bg-black/70 px-2 py-1 rounded">
+  <!-- RADAR -->
+  <section class="col-span-3 card relative overflow-hidden">
+    <img id="radarImg" class="w-full h-full object-cover">
+    <div class="absolute top-2 left-2 small bg-black/70 px-2 py-1 rounded">
       RAIN RADAR
-    </div>
-    <div id="radarStatus"
-      class="absolute bottom-2 right-2 text-[10px] text-gray-400">
     </div>
   </section>
 
-  <!-- RIGHT : INFO STACK -->
+  <!-- RIGHT STACK -->
   <section class="col-span-7 grid grid-rows-3 gap-4">
 
     <!-- SUPERCHARGER -->
     <div class="card p-4">
-      <div class="text-xs text-gray-500 mb-1">⚡ Nearest Supercharger</div>
-      <div class="text-3xl font-bold text-green-400" id="scName">--</div>
-      <div class="text-sm text-gray-400" id="scMeta">--</div>
+      <div class="small mb-1">⚡ Nearest Supercharger</div>
+      <div class="text-3xl font-bold text-green-400">Central Rama 9</div>
+      <div class="small">2.4 km · 8 stalls</div>
     </div>
 
     <!-- EMERGENCY -->
-    <div class="card p-3 flex items-center gap-3 text-sm justify-between">
-      <span>🚑 <a href="tel:1669">1669</a></span>
-      <span>🚓 <a href="tel:1193">1193</a></span>
-      <span>🚒 <a href="tel:199">199</a></span>
-      <span>⚡ <a href="tel:1800011199">Tesla</a></span>
+    <div class="card p-3 flex justify-between text-sm">
+      <a href="tel:1800011199">⚡ Tesla</a>
+      <a href="tel:1669">🚑 1669</a>
+      <a href="tel:1193">🚓 1193</a>
+      <a href="tel:1543">🛣 1543</a>
+      <a href="tel:199">🚒 199</a>
     </div>
 
     <!-- SPEED CAMERA -->
     <div class="card p-4">
-      <div class="text-xs text-gray-500 mb-1">📷 Speed Camera Zone</div>
-      <div class="text-2xl font-bold text-red-400" id="camInfo">
-        No camera nearby
+      <div class="small mb-1">📷 Speed Camera</div>
+      <div id="camInfo" class="text-2xl font-bold text-red-400">
+        Loading...
       </div>
     </div>
 
   </section>
 </main>
 
-<!-- ===== FOOTER ===== -->
 <footer class="mt-3 text-[10px] text-gray-600 text-center">
-  Tesla Drive UI · Offline-safe · Bangkok fallback
+  Tesla Drive UI · Offline safe · OSM Speed Camera
 </footer>
 
 <script>
-/* ===============================
-   CONFIG
-================================ */
+/* CONFIG */
 const FALLBACK_LAT = 13.7563;
 const FALLBACK_LON = 100.5018;
 const OWM_KEY = "YOUR_OPENWEATHER_KEY";
 const WAQI_TOKEN = "YOUR_WAQI_TOKEN";
 
-/* ===============================
-   CLOCK
-================================ */
-function updateClock(){
+/* CLOCK */
+function updateClock() {
   const d = new Date();
-  document.getElementById("clock").textContent =
-    d.getHours().toString().padStart(2,'0') + ":" +
-    d.getMinutes().toString().padStart(2,'0');
+  clock.textContent =
+    d.getHours().toString().padStart(2,"0") + ":" +
+    d.getMinutes().toString().padStart(2,"0");
 }
 setInterval(updateClock,1000);
 updateClock();
 
-/* ===============================
-   LOCATION (FAIL-SAFE)
-================================ */
-function getLocation(){
+/* GPS */
+function getLocation() {
   return new Promise(res=>{
-    if(!navigator.geolocation){
-      res({lat:FALLBACK_LAT,lon:FALLBACK_LON, approx:true});
-      return;
-    }
     navigator.geolocation.getCurrentPosition(
-      p=>res({lat:p.coords.latitude, lon:p.coords.longitude}),
-      ()=>res({lat:FALLBACK_LAT,lon:FALLBACK_LON, approx:true}),
+      p=>res({lat:p.coords.latitude,lon:p.coords.longitude}),
+      ()=>res({lat:FALLBACK_LAT,lon:FALLBACK_LON}),
       {timeout:5000}
     );
   });
 }
 
-/* ===============================
-   WEATHER + AQI
-================================ */
+/* TILE CONVERSION */
+function lon2tile(lon,z){return Math.floor((lon+180)/360*Math.pow(2,z));}
+function lat2tile(lat,z){
+  return Math.floor(
+    (1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*Math.pow(2,z)
+  );
+}
+
+/* RADAR */
+function loadRadar(lat,lon){
+  const z=7;
+  const x=lon2tile(lon,z);
+  const y=lat2tile(lat,z);
+  const ts=Math.floor(Date.now()/600000)*600;
+  radarImg.src=`https://tilecache.rainviewer.com/v2/radar/${ts}/${z}/${x}/${y}/2/1_1.png`;
+}
+
+/* WEATHER */
 async function loadWeather(lat,lon){
   try{
-    const r = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OWM_KEY}`
-    );
-    const d = await r.json();
-    localStorage.setItem("weather",JSON.stringify(d));
-    renderWeather(d);
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OWM_KEY}`);
+    const d=await r.json();
+    if(!d.main) throw "";
+    localStorage.weather=JSON.stringify(d);
+    tempNow.textContent=Math.round(d.main.temp)+"°";
+    weatherDesc.textContent=d.weather[0].description;
   }catch{
-    const cached = localStorage.getItem("weather");
-    if(cached) renderWeather(JSON.parse(cached));
-  }
-}
-
-function renderWeather(d){
-  document.getElementById("tempNow").textContent =
-    Math.round(d.main.temp)+"°";
-  document.getElementById("weatherDesc").textContent =
-    d.weather[0].description;
-}
-
-/* ===============================
-   AQI
-================================ */
-async function loadAQI(lat,lon){
-  try{
-    const r = await fetch(
-      `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`
-    );
-    const d = await r.json();
-    localStorage.setItem("aqi",JSON.stringify(d));
-    document.getElementById("aqiVal").textContent = d.data.aqi;
-  }catch{
-    const cached = localStorage.getItem("aqi");
-    if(cached){
-      document.getElementById("aqiVal").textContent =
-        JSON.parse(cached).data.aqi;
+    if(localStorage.weather){
+      const d=JSON.parse(localStorage.weather);
+      tempNow.textContent=Math.round(d.main.temp)+"°";
+      weatherDesc.textContent=d.weather[0].description;
     }
   }
 }
 
-/* ===============================
-   RAIN RADAR (IMAGE SAFE)
-================================ */
-function loadRadar(lat,lon){
-  const ts = Math.floor(Date.now()/600000);
-  document.getElementById("radarImg").src =
-    `https://tilecache.rainviewer.com/v2/radar/${ts}/512/${8}/${Math.round(lon)}/${Math.round(lat)}/2/1_1.png`;
-  document.getElementById("radarStatus").textContent = "";
+/* AQI */
+async function loadAQI(lat,lon){
+  try{
+    const r=await fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`);
+    const d=await r.json();
+    if(!d.data) throw "";
+    localStorage.aqi=JSON.stringify(d);
+    aqiVal.textContent=d.data.aqi;
+  }catch{
+    if(localStorage.aqi){
+      aqiVal.textContent=JSON.parse(localStorage.aqi).data.aqi;
+    }
+  }
 }
 
-/* ===============================
-   MOCK DATA (SC + CAMERA)
-================================ */
-function loadStaticInfo(){
-  document.getElementById("scName").textContent = "Central Rama 9";
-  document.getElementById("scMeta").textContent = "2.4 km · 8 stalls";
-
-  document.getElementById("camInfo").textContent =
-    "Camera ahead in 1.2 km";
+/* DISTANCE */
+function dist(a,b,c,d){
+  const R=6371;
+  const dLat=(c-a)*Math.PI/180;
+  const dLon=(d-b)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+
+    Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*
+    Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-/* ===============================
-   INIT
-================================ */
-(async ()=>{
-  const loc = await getLocation();
+/* SPEED CAMERA */
+async function loadCamera(lat,lon){
+  const r=await fetch("speed_camera_th.json");
+  const cams=await r.json();
+  let min=999;
+  cams.forEach(c=>{
+    const d=dist(lat,lon,c.lat,c.lon);
+    if(d<min) min=d;
+  });
+  camInfo.textContent =
+    min<2 ? `Camera ahead ${min.toFixed(1)} km` : "No camera nearby";
+}
+
+/* INIT */
+(async()=>{
+  const loc=await getLocation();
+  loadRadar(loc.lat,loc.lon);
   loadWeather(loc.lat,loc.lon);
   loadAQI(loc.lat,loc.lon);
-  loadRadar(loc.lat,loc.lon);
-  loadStaticInfo();
+  loadCamera(loc.lat,loc.lon);
 })();
 </script>
 </body>
